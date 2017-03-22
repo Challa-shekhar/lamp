@@ -1,0 +1,8 @@
+mysql_repo_path: "/etc/yum.repos.d/mysql-community.repo"
+mysql_repo_url: "https://repo.mysql.com//mysql57-community-release-el7-9.noarch.rpm"
+mysql_key_url: "/etc/pki/rpm-gpg/RPM-GPG-KEY-mysql"
+
+mysql_root_password: "Test123"
+mysqlservice: "mysqld"
+mysql_port: "3306"
+dbname: "test"

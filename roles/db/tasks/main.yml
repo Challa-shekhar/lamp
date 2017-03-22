@@ -1,0 +1,56 @@
+---
+# This playbook will install mysql and create db user and give permissions.
+- name: check if mysql repo is already configured
+  stat:
+    path: '{{ mysql_repo_path }}'
+  register: mysql_repo_result
+
+- name: Install Mysql Repository
+  yum:
+   name: '{{ mysql_repo_url }}'
+   state: present
+  register: result
+  until: '"failed" not in result'
+  retries: 5
+  delay: 10
+  when: not mysql_repo_result.stat.exists
+
+- name: Import GPG key
+  rpm_key:
+     key: '{{ mysql_key_url }}'
+     state: present
+  when: not mysql_repo_result.stat.exists
+
+- name: Install Mysql package
+  yum: name={{ item }} state=installed
+  with_items:
+   - mysql-server
+   - MySQL-python
+   - libselinux-python
+   - libsemanage-python
+
+- name: Configure SELinux to start mysql on any port
+  seboolean: 
+    name: mysql_connect_any 
+    state: true 
+    persistent: yes
+  when: sestatus.rc != 0
+
+- name: Start Mysql Service
+  service: 
+     name: mysqld 
+     state: started 
+     enabled: yes
+  
+#- name: reset mysql 5.6+ default password (no longer empty)
+#  shell: mysql_secret=$(sudo grep 'temporary password' /var/log/mysqld.log | awk '{print $NF}') && mysqladmin -u=root  --password=${mysql_secret} '{{ mysql_root_password }}'
+#  register: mysql_secret
+#
+#- name: Create Application Database
+#  mysql_db: 
+#    name: '{{ dbname }}'
+#    state: present
+#    login_password: '{{ mysql_root_password }}'
+#    login_user: root
+#    collation: utf8_general_ci
+
